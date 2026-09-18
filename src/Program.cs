@@ -34,7 +34,7 @@ class Program
                             string fullPath = Path.Combine(entry, commandName);
                             if (File.Exists(fullPath))
                             {
-                                if(OperatingSystem.IsWindows() || File.GetUnixFileMode(fullPath) == UnixFileMode.UserExecute)
+                                if(OperatingSystem.IsWindows() || File.GetUnixFileMode(fullPath).HasFlag(UnixFileMode.UserExecute))
                                 {
                                     Console.WriteLine($"{commandName} is {fullPath}");
                                     found = true;
