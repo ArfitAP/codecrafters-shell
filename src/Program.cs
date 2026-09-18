@@ -11,6 +11,11 @@ class Program
             {
                 break;
             }
+            else if(command != null && command.StartsWith("echo "))
+            {
+                Console.WriteLine(command[5..].Trim());
+                continue;
+            }
 
             Console.WriteLine($"{command}: command not found");
         }
