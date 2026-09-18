@@ -63,7 +63,7 @@ class Program
                     {
                         var process = Process.Start(new ProcessStartInfo
                         {
-                            FileName = fullPath,
+                            FileName = programargs[0],
                             Arguments = string.Join(" ", programargs.Skip(1))
                         });
 
