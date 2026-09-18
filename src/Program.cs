@@ -25,7 +25,24 @@ class Program
                 }
                 else
                 {
-                    Console.WriteLine($"{commandName}: not found");
+                    string? path = Environment.GetEnvironmentVariable("PATH");
+                    bool found = false;
+                    if (path != null)
+                    {
+                        foreach (string entry in path.Split(Path.PathSeparator))
+                        {
+                            if (File.Exists(Path.Combine(entry, commandName)))
+                            {
+                                //File.GetUnixFileMode(Path.Combine(entry, commandName));
+                                Console.WriteLine($"{commandName} is {Path.Combine(entry, commandName)}");
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found)
+                        Console.WriteLine($"{commandName}: not found");
                 }
                 continue;
             }
