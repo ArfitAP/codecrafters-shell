@@ -30,13 +30,16 @@ class Program
                     if (path != null)
                     {
                         foreach (string entry in path.Split(Path.PathSeparator))
-                        {
-                            if (File.Exists(Path.Combine(entry, commandName)))
+                        {   
+                            string fullPath = Path.Combine(entry, commandName);
+                            if (File.Exists(fullPath))
                             {
-                                //File.GetUnixFileMode(Path.Combine(entry, commandName));
-                                Console.WriteLine($"{commandName} is {Path.Combine(entry, commandName)}");
-                                found = true;
-                                break;
+                                if(OperatingSystem.IsWindows() || File.GetUnixFileMode(fullPath) == UnixFileMode.UserExecute)
+                                {
+                                    Console.WriteLine($"{commandName} is {fullPath}");
+                                    found = true;
+                                    break;
+                                }                         
                             }
                         }
                     }
