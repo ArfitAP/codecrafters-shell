@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 class Program
 {
     static void Main()
@@ -50,7 +52,30 @@ class Program
                 continue;
             }
 
-            Console.WriteLine($"{command}: command not found");
+            bool executed = false;
+            string[] programargs = command!.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            foreach (string entry in Environment.GetEnvironmentVariable("PATH")!.Split(Path.PathSeparator))
+            {
+                string fullPath = Path.Combine(entry, programargs[0]);
+                if (File.Exists(fullPath))
+                {
+                    if (OperatingSystem.IsWindows() || File.GetUnixFileMode(fullPath).HasFlag(UnixFileMode.UserExecute))
+                    {
+                        var process = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = fullPath,
+                            Arguments = string.Join(" ", programargs.Skip(1))
+                        });
+
+                        process?.WaitForExit();
+                        executed = true;
+                        break;
+                    }
+                }
+            }
+            
+            if(!executed)
+                Console.WriteLine($"{command}: command not found");
         }
     }
 }
