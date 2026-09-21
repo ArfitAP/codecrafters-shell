@@ -28,14 +28,32 @@ class Program
             else if (command != null && command.StartsWith("cd "))
             {
                 string newDirectory = command[3..].Trim();
-                /*if (newDirectory.StartsWith("~"))
+                if(Path.IsPathRooted(newDirectory))
                 {
-                    
+                    newDirectory = Path.GetFullPath(newDirectory);
                 }
                 else if (newDirectory.StartsWith("~"))
                 {
                     newDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), newDirectory[1..]);
-                }*/
+                }
+                else
+                {
+                    string tmpDirectory = workingDirectory;
+                    string[] paths = newDirectory.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    foreach (string path in paths)
+                    {
+                        if (path == "..")
+                        {
+                            tmpDirectory = Path.GetDirectoryName(tmpDirectory) ?? workingDirectory;
+                        }
+                        else if (path != ".")
+                        {
+                            tmpDirectory = Path.Combine(tmpDirectory, path);
+                        }
+                    }
+
+                    newDirectory = tmpDirectory;
+                }
 
                 if (Directory.Exists(newDirectory))
                 {
