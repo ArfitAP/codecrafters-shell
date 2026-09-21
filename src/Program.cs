@@ -5,7 +5,7 @@ class Program
     static void Main()
     {
         string workingDirectory = Directory.GetCurrentDirectory();
-        List<string> builtInCommands = ["exit", "echo", "type", "pwd"];
+        List<string> builtInCommands = ["exit", "echo", "type", "pwd", "cd"];
 
         while(true)
         {
@@ -23,6 +23,28 @@ class Program
             else if(command != null && command.StartsWith("echo "))
             {
                 Console.WriteLine(command[5..].Trim());
+                continue;
+            }
+            else if (command != null && command.StartsWith("cd "))
+            {
+                string newDirectory = command[3..].Trim();
+                /*if (newDirectory.StartsWith("~"))
+                {
+                    
+                }
+                else if (newDirectory.StartsWith("~"))
+                {
+                    newDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), newDirectory[1..]);
+                }*/
+
+                if (Directory.Exists(newDirectory))
+                {
+                    workingDirectory = newDirectory;
+                }
+                else
+                {
+                    Console.WriteLine($"cd: {newDirectory}: No such file or directory");
+                }
                 continue;
             }
             else if (command != null && command.StartsWith("type "))
