@@ -101,11 +101,17 @@ class Program
 
                 if (!string.IsNullOrEmpty(fullPath))
                 {
-                    var process = Process.Start(new ProcessStartInfo
+                    var processStartInfo = new ProcessStartInfo
                     {
-                        FileName = args[0],
-                        Arguments = string.Join(" ", args.Skip(1).Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg))
-                    });
+                        FileName = args[0]
+                    };
+
+                    foreach (var arg in args.Skip(1))
+                    {
+                        processStartInfo.ArgumentList.Add(arg);
+                    }
+
+                    var process = Process.Start(processStartInfo);
 
                     process?.WaitForExit();
                 }

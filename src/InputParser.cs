@@ -25,7 +25,7 @@ namespace CodeCrafters.Shell.src
                 {
                     inSingleQuotes = !inSingleQuotes;
                 }
-                else if (c == '"')
+                else if (c == '"' && !inSingleQuotes)
                 {
                     inDoubleQuotes = !inDoubleQuotes;
                 }
