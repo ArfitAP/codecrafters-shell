@@ -14,17 +14,7 @@ class Program
             List<string> args = InputParser.ParseInput(Console.ReadLine()!);
             string command = args[0];
 
-            OutputWriter outputWriter = new OutputWriter();
-            if (args.Contains(">") || args.Contains("1>"))
-            {
-                int redirectIndex = args.IndexOf(">") != -1 ? args.IndexOf(">") : args.IndexOf("1>");
-                if (redirectIndex + 1 < args.Count)
-                {
-                    outputWriter.StandardOutputFileName = Path.Combine(workingDirectory, args[redirectIndex + 1]);
-                    outputWriter.RedirectOutputToFile = true;
-                }
-                args = args.Take(redirectIndex).ToList();
-            }
+            OutputWriter outputWriter = new OutputWriter(ref args, workingDirectory);
 
             if (command == "exit")
             {
@@ -79,7 +69,7 @@ class Program
                 }
                 else
                 {
-                    Console.WriteLine($"cd: {newDirectory}: No such file or directory");
+                    outputWriter.WriteError($"cd: {newDirectory}: No such file or directory");
                 }
                 continue;
             }
@@ -103,7 +93,7 @@ class Program
                     }
                     else
                     {
-                        Console.WriteLine($"{commandName}: not found");
+                        outputWriter.WriteError($"{commandName}: not found");
                     }
                 }        
             }
@@ -116,7 +106,8 @@ class Program
                     var processStartInfo = new ProcessStartInfo
                     {
                         FileName = args[0],
-                        RedirectStandardOutput = true
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
                     };
 
                     foreach (var arg in args.Skip(1))
@@ -142,11 +133,27 @@ class Program
                         }
                     }
 
+                    if (outputWriter.RedirectErrorToFile && !string.IsNullOrEmpty(outputWriter.StandardErrorFileName))
+                    {
+                        using var output = File.Create(outputWriter.StandardErrorFileName);
+                        process!.StandardError.BaseStream.CopyTo(output);
+                    }
+                    else
+                    {
+                        using var output = process!.StandardError;
+                        string text = output.ReadToEnd();
+                        Console.Write(text);
+                        if (text.Length > 0 && !text.EndsWith('\n'))
+                        {
+                            Console.WriteLine();
+                        }
+                    }
+
                     process?.WaitForExit();
                 }
                 else
                 {
-                    Console.WriteLine($"{command}: command not found");
+                    outputWriter.WriteError($"{command}: command not found");
                 }
             }    
         }
