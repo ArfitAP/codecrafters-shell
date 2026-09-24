@@ -29,7 +29,7 @@ namespace CodeCrafters.Shell.src
                 {
                     inDoubleQuotes = !inDoubleQuotes;
                 }
-                else if(c == '\\' && !inSingleQuotes && !inDoubleQuotes)
+                else if(c == '\\' && (!inSingleQuotes || inDoubleQuotes))
                 {
                     escapeNextChar = true;
                 }
