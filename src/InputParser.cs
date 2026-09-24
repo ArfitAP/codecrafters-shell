@@ -10,15 +10,20 @@ namespace CodeCrafters.Shell.src
         {
             List<string> args = new List<string>();
             StringBuilder currentArg = new StringBuilder();
-            bool inQuotes = false;
+            bool inSingleQuotes = false;
+            bool inDoubleQuotes = false;
             for (int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
-                if (c == '\'')
+                if (c == '\'' && !inDoubleQuotes)
                 {
-                    inQuotes = !inQuotes;
+                    inSingleQuotes = !inSingleQuotes;
                 }
-                else if (char.IsWhiteSpace(c) && !inQuotes)
+                else if (c == '"')
+                {
+                    inDoubleQuotes = !inDoubleQuotes;
+                }
+                else if (char.IsWhiteSpace(c) && !inSingleQuotes && !inDoubleQuotes)
                 {
                     if (currentArg.Length > 0)
                     {
