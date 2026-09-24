@@ -1,3 +1,4 @@
+using CodeCrafters.Shell.src;
 using System.Diagnostics;
 
 class Program
@@ -10,7 +11,8 @@ class Program
         while(true)
         {
             Console.Write("$ ");
-            string command = Console.ReadLine()!;
+            List<string> args = InputParser.ParseInput(Console.ReadLine()!);
+            string command = args[0];
 
             if (command == "exit")
             {
@@ -20,14 +22,18 @@ class Program
             {
                 Console.WriteLine(workingDirectory);
             }
-            else if(command != null && command.StartsWith("echo "))
+            else if(command == "echo")
             {
-                Console.WriteLine(command[5..].Trim());
+                Console.WriteLine(string.Join(" ", args.Skip(1)));
                 continue;
             }
-            else if (command != null && command.StartsWith("cd "))
+            else if (command == "cd")
             {
-                string newDirectory = command[3..].Trim();
+                if (args.Count < 2)
+                {
+                    continue;
+                }
+                string newDirectory = args[1];
                 if(Path.IsPathRooted(newDirectory))
                 {
                     newDirectory = Path.GetFullPath(newDirectory);
@@ -65,9 +71,13 @@ class Program
                 }
                 continue;
             }
-            else if (command != null && command.StartsWith("type "))
+            else if (command == "type")
             {
-                string commandName = command[5..].Trim();
+                if (args.Count < 2)
+                {
+                    continue;
+                }
+                string commandName = args[1];
                 if (builtInCommands.Contains(commandName))
                 {
                     Console.WriteLine($"{commandName} is a shell builtin");
@@ -87,15 +97,14 @@ class Program
             }
             else
             {
-                string[] programargs = command!.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-                string fullPath = GetCommandPath(programargs[0]);
+                string fullPath = GetCommandPath(args[0]);
 
                 if (!string.IsNullOrEmpty(fullPath))
                 {
                     var process = Process.Start(new ProcessStartInfo
                     {
-                        FileName = programargs[0],
-                        Arguments = string.Join(" ", programargs.Skip(1))
+                        FileName = args[0],
+                        Arguments = string.Join(" ", args.Skip(1).Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg))
                     });
 
                     process?.WaitForExit();
