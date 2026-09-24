@@ -14,17 +14,29 @@ class Program
             List<string> args = InputParser.ParseInput(Console.ReadLine()!);
             string command = args[0];
 
+            OutputWriter outputWriter = new OutputWriter();
+            if (args.Contains(">") || args.Contains("1>"))
+            {
+                int redirectIndex = args.IndexOf(">") != -1 ? args.IndexOf(">") : args.IndexOf("1>");
+                if (redirectIndex + 1 < args.Count)
+                {
+                    outputWriter.StandardOutputFileName = Path.Combine(workingDirectory, args[redirectIndex + 1]);
+                    outputWriter.RedirectOutputToFile = true;
+                }
+                args = args.Take(redirectIndex).ToList();
+            }
+
             if (command == "exit")
             {
                 break;
             }
             else if(command == "pwd")
             {
-                Console.WriteLine(workingDirectory);
+                outputWriter.WriteOutput(workingDirectory);
             }
             else if(command == "echo")
             {
-                Console.WriteLine(string.Join(" ", args.Skip(1)));
+                outputWriter.WriteOutput(string.Join(" ", args.Skip(1)));
                 continue;
             }
             else if (command == "cd")
@@ -80,14 +92,14 @@ class Program
                 string commandName = args[1];
                 if (builtInCommands.Contains(commandName))
                 {
-                    Console.WriteLine($"{commandName} is a shell builtin");
+                    outputWriter.WriteOutput($"{commandName} is a shell builtin");
                 }
                 else
                 {
                     string fullPath = GetCommandPath(commandName);
                     if (!string.IsNullOrEmpty(fullPath))
                     {
-                        Console.WriteLine($"{commandName} is {fullPath}");
+                        outputWriter.WriteOutput($"{commandName} is {fullPath}");
                     }
                     else
                     {
@@ -103,7 +115,8 @@ class Program
                 {
                     var processStartInfo = new ProcessStartInfo
                     {
-                        FileName = args[0]
+                        FileName = args[0],
+                        RedirectStandardOutput = true
                     };
 
                     foreach (var arg in args.Skip(1))
@@ -112,6 +125,22 @@ class Program
                     }
 
                     var process = Process.Start(processStartInfo);
+
+                    if(outputWriter.RedirectOutputToFile && !string.IsNullOrEmpty(outputWriter.StandardOutputFileName))
+                    {
+                        using var output = File.Create(outputWriter.StandardOutputFileName);
+                        process!.StandardOutput.BaseStream.CopyTo(output);
+                    }
+                    else
+                    {
+                        using var output = process!.StandardOutput;
+                        string text = output.ReadToEnd();
+                        Console.Write(text);
+                        if (text.Length > 0 && !text.EndsWith('\n'))
+                        {
+                            Console.WriteLine();
+                        }
+                    }
 
                     process?.WaitForExit();
                 }
