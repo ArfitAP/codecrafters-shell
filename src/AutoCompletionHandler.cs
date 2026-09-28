@@ -59,10 +59,32 @@ namespace CodeCrafters.Shell.src
 
                 if (matches.Count() > 1)
                 {
+                    StringBuilder sb = new();
+                    int currLength = text.Length;
+                    int maxLength = matches.Min(m => m.Length);
+                    for (int i = currLength; i < maxLength; i++)
+                    {
+                        char currentChar = matches[0][i];
+                        if (matches.All(m => m[i] == currentChar))
+                        {
+                            sb.Append(currentChar);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if(sb.Length > 0)
+                    {
+                        lastInput = text + sb.ToString();
+                        return new string[] { lastInput };
+                    }
+
                     Console.Write("\x07");
                     lastInput = text;
                     return [];
-                }
+                                    }
                 else if (matches.Count() == 1)
                 {
                     lastInput = string.Empty;
