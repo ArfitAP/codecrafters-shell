@@ -16,10 +16,18 @@ namespace CodeCrafters.Shell.src
         // index - The index of the terminal cursor within {text}
         public string[] GetSuggestions(string text, int index)
         {
-            return builtInCommands
+            var matches = builtInCommands
                 .Where(command => command.StartsWith(text, StringComparison.Ordinal))
                 .Select(command => command + " ")
                 .ToArray();
+
+            if(matches.Length == 0)
+            {
+                // If no matches found, print a bell sound to indicate no suggestions are available
+                Console.Write("\x07");
+            }
+
+            return matches;
         }
     }
 }
