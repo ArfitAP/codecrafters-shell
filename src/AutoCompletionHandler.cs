@@ -23,6 +23,32 @@ namespace CodeCrafters.Shell.src
 
             if(matches.Length == 0)
             {
+                string? path = Environment.GetEnvironmentVariable("PATH");
+                if (path != null)
+                {
+                    foreach (string entry in path.Split(Path.PathSeparator))
+                    {
+                        if(!Directory.Exists(entry))
+                        {
+                            continue;
+                        }
+
+                        foreach (string fullFileName in Directory.GetFiles(entry))
+                        {
+                            string commandName = Path.GetFileName(fullFileName);
+                            if (commandName.StartsWith(text, StringComparison.Ordinal))
+                            {
+                                matches = matches.Append(commandName + " ").ToArray();
+                            }
+                        }              
+                    }
+                }
+
+                if(matches.Any())
+                {
+                    return matches;
+                }
+
                 // If no matches found, print a bell sound to indicate no suggestions are available
                 Console.Write("\x07");
             }
