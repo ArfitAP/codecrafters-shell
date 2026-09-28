@@ -10,8 +10,10 @@ class Program
 
         while(true)
         {
-            Console.Write("$ ");
-            List<string> args = InputParser.ParseInput(Console.ReadLine()!);
+            ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler();
+
+            string? input = ReadLine.ReadLine.Read("$ ");
+            List<string> args = InputParser.ParseInput(input!);
             string command = args[0];
 
             OutputWriter outputWriter = new OutputWriter(ref args, workingDirectory);
