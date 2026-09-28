@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CodeCrafters.Shell.src
 {
@@ -11,6 +12,8 @@ namespace CodeCrafters.Shell.src
 
         public bool RedirectOutputToFile { get; set; }
         public bool RedirectErrorToFile { get; set; }
+        public bool AppendOutputToFile { get; set; }
+        public bool AppendErrorToFile { get; set; }
 
         public OutputWriter(ref List<string> args, string workingDirectory)
         {
@@ -26,6 +29,17 @@ namespace CodeCrafters.Shell.src
                     File.Create(StandardOutputFileName).Close();
                 }
             }
+            else if (args.Contains(">>") || args.Contains("1>>"))
+            {
+                stdRedirectIndex = args.IndexOf(">>") != -1 ? args.IndexOf(">>") : args.IndexOf("1>>");
+                if (stdRedirectIndex + 1 < args.Count)
+                {
+                    StandardOutputFileName = Path.Combine(workingDirectory, args[stdRedirectIndex + 1]);
+                    AppendOutputToFile = true;
+                    if(!File.Exists(StandardOutputFileName)) File.Create(StandardOutputFileName).Close();
+                }
+            }
+
             if (args.Contains("2>"))
             {
                 errRedirectIndex = args.IndexOf("2>");
@@ -36,6 +50,17 @@ namespace CodeCrafters.Shell.src
                     File.Create(StandardErrorFileName).Close();
                 }
             }
+            else if (args.Contains("2>>"))
+            {
+                errRedirectIndex = args.IndexOf("2>>");
+                if (errRedirectIndex + 1 < args.Count)
+                {
+                    StandardErrorFileName = Path.Combine(workingDirectory, args[errRedirectIndex + 1]);
+                    AppendErrorToFile = true;
+                    if(!File.Exists(StandardErrorFileName)) File.Create(StandardErrorFileName).Close();
+                }
+            }
+
             int minRedirectIndex = Math.Min(stdRedirectIndex, errRedirectIndex);
             args = args.Take(minRedirectIndex).ToList();          
         }
@@ -45,6 +70,18 @@ namespace CodeCrafters.Shell.src
             if (RedirectOutputToFile && !string.IsNullOrEmpty(StandardOutputFileName))
             {
                 File.WriteAllText(StandardOutputFileName, output);
+                if (output.Length > 0 && !output.EndsWith('\n'))
+                {
+                    File.AppendAllText(StandardOutputFileName, Environment.NewLine);
+                }
+            }
+            else if (AppendOutputToFile && !string.IsNullOrEmpty(StandardOutputFileName))
+            {
+                File.AppendAllText(StandardOutputFileName, output);
+                if (output.Length > 0 && !output.EndsWith('\n'))
+                {
+                    File.AppendAllText(StandardOutputFileName, Environment.NewLine);
+                }
             }
             else
             {
@@ -57,6 +94,18 @@ namespace CodeCrafters.Shell.src
             if (RedirectErrorToFile && !string.IsNullOrEmpty(StandardErrorFileName))
             {
                 File.WriteAllText(StandardErrorFileName, output);
+                if (output.Length > 0 && !output.EndsWith('\n'))
+                {
+                    File.AppendAllText(StandardErrorFileName, Environment.NewLine);
+                }
+            }
+            else if (AppendErrorToFile && !string.IsNullOrEmpty(StandardErrorFileName))
+            {
+                File.AppendAllText(StandardErrorFileName, output);
+                if (output.Length > 0 && !output.EndsWith('\n'))
+                {
+                    File.AppendAllText(StandardErrorFileName, Environment.NewLine);
+                }
             }
             else
             {

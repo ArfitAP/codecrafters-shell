@@ -122,6 +122,18 @@ class Program
                         using var output = File.Create(outputWriter.StandardOutputFileName);
                         process!.StandardOutput.BaseStream.CopyTo(output);
                     }
+                    else if (outputWriter.AppendOutputToFile && !string.IsNullOrEmpty(outputWriter.StandardOutputFileName))
+                    {
+                        using var output = new StreamWriter(File.Open(outputWriter.StandardOutputFileName, FileMode.Append));
+
+                        using var standardOutput = process!.StandardOutput;
+                        string text = standardOutput.ReadToEnd();
+                        output.Write(text);
+                        if (text.Length > 0 && !text.EndsWith('\n'))
+                        {
+                            output.WriteLine();
+                        }
+                    }
                     else
                     {
                         using var output = process!.StandardOutput;
@@ -137,6 +149,18 @@ class Program
                     {
                         using var output = File.Create(outputWriter.StandardErrorFileName);
                         process!.StandardError.BaseStream.CopyTo(output);
+                    }
+                    else if (outputWriter.AppendErrorToFile && !string.IsNullOrEmpty(outputWriter.StandardErrorFileName))
+                    {
+                        using var output = new StreamWriter(File.Open(outputWriter.StandardErrorFileName, FileMode.Append));
+
+                        using var standardError = process!.StandardError;
+                        string text = standardError.ReadToEnd();
+                        output.Write(text);
+                        if (text.Length > 0 && !text.EndsWith('\n'))
+                        {
+                            output.WriteLine();
+                        }
                     }
                     else
                     {
