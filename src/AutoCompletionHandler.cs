@@ -11,11 +11,22 @@ namespace CodeCrafters.Shell.src
         public char[] Separators { get; set; } = new char[] { ' ', '.', '/' };
 
         private List<string> builtInCommands = ["exit", "echo"];
+        private string lastInput = string.Empty;
+        private List<string> lastSuggestions = new List<string>();
 
         // text - The current text entered in the console
         // index - The index of the terminal cursor within {text}
         public string[] GetSuggestions(string text, int index)
         {
+            if(lastInput != string.Empty && text == lastInput && lastSuggestions.Count > 0)
+            {
+                lastSuggestions.Sort();
+                Console.WriteLine();
+                Console.WriteLine(string.Join("  ", lastSuggestions));
+                Console.Write($"$ {text}");
+                return [];
+            }
+
             var matches = builtInCommands
                 .Where(command => command.StartsWith(text, StringComparison.Ordinal))
                 .Select(command => command + " ")
@@ -44,8 +55,18 @@ namespace CodeCrafters.Shell.src
                     }
                 }
 
-                if(matches.Any())
+                lastSuggestions = matches.ToList();
+
+                if (matches.Count() > 1)
                 {
+                    Console.Write("\x07");
+                    lastInput = text;
+                    return [];
+                }
+                else if (matches.Count() == 1)
+                {
+                    lastInput = string.Empty;
+                    lastSuggestions = [];
                     return matches;
                 }
 
@@ -54,6 +75,12 @@ namespace CodeCrafters.Shell.src
             }
 
             return matches;
+        }
+
+        public void ResetSuggestions()
+        {
+            lastInput = string.Empty;
+            lastSuggestions.Clear();
         }
     }
 }

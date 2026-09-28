@@ -8,10 +8,11 @@ class Program
         string workingDirectory = Directory.GetCurrentDirectory();
         List<string> builtInCommands = ["exit", "echo", "type", "pwd", "cd"];
 
-        while(true)
-        {
-            ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler();
+        ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler();
 
+        while (true)
+        {
+            //((AutoCompletionHandler)ReadLine.ReadLine.Context.AutoCompletionHandler).ResetSuggestions();
             string? input = ReadLine.ReadLine.Read("$ ");
             List<string> args = InputParser.ParseInput(input!);
             string command = args[0];
