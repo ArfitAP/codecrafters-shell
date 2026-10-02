@@ -5,19 +5,20 @@ class Program
 {
     static void Main()
     {
-        string workingDirectory = Directory.GetCurrentDirectory();
+        WorkingDirectoryManager workingDirectoryManager = new WorkingDirectoryManager();
+        workingDirectoryManager.WorkingDirectory = Directory.GetCurrentDirectory();
+
         List<string> builtInCommands = ["exit", "echo", "type", "pwd", "cd"];
 
-        ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler();
+        ReadLine.ReadLine.Context.AutoCompletionHandler = new AutoCompletionHandler(workingDirectoryManager);
 
         while (true)
         {
-            //((AutoCompletionHandler)ReadLine.ReadLine.Context.AutoCompletionHandler).ResetSuggestions();
             string? input = ReadLine.ReadLine.Read("$ ");
             List<string> args = InputParser.ParseInput(input!);
             string command = args[0];
 
-            OutputWriter outputWriter = new OutputWriter(ref args, workingDirectory);
+            OutputWriter outputWriter = new OutputWriter(ref args, workingDirectoryManager.WorkingDirectory);
 
             if (command == "exit")
             {
@@ -25,7 +26,7 @@ class Program
             }
             else if(command == "pwd")
             {
-                outputWriter.WriteOutput(workingDirectory);
+                outputWriter.WriteOutput(workingDirectoryManager.WorkingDirectory);
             }
             else if(command == "echo")
             {
@@ -49,13 +50,13 @@ class Program
                 }
                 else
                 {
-                    string tmpDirectory = workingDirectory;
+                    string tmpDirectory = workingDirectoryManager.WorkingDirectory;
                     string[] paths = newDirectory.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                     foreach (string path in paths)
                     {
                         if (path == "..")
                         {
-                            tmpDirectory = Path.GetDirectoryName(tmpDirectory) ?? workingDirectory;
+                            tmpDirectory = Path.GetDirectoryName(tmpDirectory) ?? workingDirectoryManager.WorkingDirectory;
                         }
                         else if (path != ".")
                         {
@@ -68,7 +69,7 @@ class Program
 
                 if (Directory.Exists(newDirectory))
                 {
-                    workingDirectory = newDirectory;
+                    workingDirectoryManager.WorkingDirectory = newDirectory;
                 }
                 else
                 {
