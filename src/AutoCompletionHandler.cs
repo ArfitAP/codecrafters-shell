@@ -111,10 +111,14 @@ namespace CodeCrafters.Shell.src
             else
             {
                 var lastPart = cmdParts.Last();
-                var allfiles = Directory.GetFiles(workingDirectoryManager.WorkingDirectory);
+                var nestedpaths = lastPart.Split('/');
+                var lastNestedPart = nestedpaths.Last();
+                var serachPath = Path.Combine([workingDirectoryManager.WorkingDirectory, ..nestedpaths.Take(nestedpaths.Length - 1).ToArray()]);
+
+                var allfiles = Directory.GetFiles(serachPath);
 
                 var matches = allfiles
-                    .Where(file => Path.GetFileName(file).StartsWith(lastPart, StringComparison.Ordinal))
+                    .Where(file => Path.GetFileName(file).StartsWith(lastNestedPart, StringComparison.Ordinal))
                     .Select(file => Path.GetFileName(file) + " ")
                     .ToArray();
 
