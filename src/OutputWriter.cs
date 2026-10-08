@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
-
+﻿
 namespace CodeCrafters.Shell.src
 {
     internal class OutputWriter
@@ -15,7 +11,7 @@ namespace CodeCrafters.Shell.src
         public bool AppendOutputToFile { get; set; }
         public bool AppendErrorToFile { get; set; }
 
-        public OutputWriter(ref List<string> args, string workingDirectory)
+        public OutputWriter(ref List<string> args)
         {
             int stdRedirectIndex = args.Count;
             int errRedirectIndex = args.Count;
@@ -24,7 +20,7 @@ namespace CodeCrafters.Shell.src
                 stdRedirectIndex = args.IndexOf(">") != -1 ? args.IndexOf(">") : args.IndexOf("1>");
                 if (stdRedirectIndex + 1 < args.Count)
                 {
-                    StandardOutputFileName = Path.Combine(workingDirectory, args[stdRedirectIndex + 1]);
+                    StandardOutputFileName = Path.Combine(Directory.GetCurrentDirectory(), args[stdRedirectIndex + 1]);
                     RedirectOutputToFile = true;
                     File.Create(StandardOutputFileName).Close();
                 }
@@ -34,7 +30,7 @@ namespace CodeCrafters.Shell.src
                 stdRedirectIndex = args.IndexOf(">>") != -1 ? args.IndexOf(">>") : args.IndexOf("1>>");
                 if (stdRedirectIndex + 1 < args.Count)
                 {
-                    StandardOutputFileName = Path.Combine(workingDirectory, args[stdRedirectIndex + 1]);
+                    StandardOutputFileName = Path.Combine(Directory.GetCurrentDirectory(), args[stdRedirectIndex + 1]);
                     AppendOutputToFile = true;
                     if(!File.Exists(StandardOutputFileName)) File.Create(StandardOutputFileName).Close();
                 }
@@ -45,7 +41,7 @@ namespace CodeCrafters.Shell.src
                 errRedirectIndex = args.IndexOf("2>");
                 if (errRedirectIndex + 1 < args.Count)
                 {
-                    StandardErrorFileName = Path.Combine(workingDirectory, args[errRedirectIndex + 1]);
+                    StandardErrorFileName = Path.Combine(Directory.GetCurrentDirectory(), args[errRedirectIndex + 1]);
                     RedirectErrorToFile = true;
                     File.Create(StandardErrorFileName).Close();
                 }
@@ -55,7 +51,7 @@ namespace CodeCrafters.Shell.src
                 errRedirectIndex = args.IndexOf("2>>");
                 if (errRedirectIndex + 1 < args.Count)
                 {
-                    StandardErrorFileName = Path.Combine(workingDirectory, args[errRedirectIndex + 1]);
+                    StandardErrorFileName = Path.Combine(Directory.GetCurrentDirectory(), args[errRedirectIndex + 1]);
                     AppendErrorToFile = true;
                     if(!File.Exists(StandardErrorFileName)) File.Create(StandardErrorFileName).Close();
                 }
