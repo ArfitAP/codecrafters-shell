@@ -18,6 +18,15 @@
                 outputWriter.WriteOutput(Directory.GetCurrentDirectory());
                 return true;
             }
+            else if (command == "complete")
+            {
+                if(args.Contains("-p"))
+                {
+                    int index = args.IndexOf("-p");
+                    outputWriter.WriteError($"complete: {args[index + 1]}: no completion specification");
+                }
+                return true;
+            }
             else if (command == "echo")
             {
                 outputWriter.WriteOutput(string.Join(" ", args.Skip(1)));
