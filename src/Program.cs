@@ -1,4 +1,6 @@
 using CodeCrafters.Shell.src;
+using CodeCrafters.Shell.src.AutoCompletion;
+using CodeCrafters.Shell.src.CommandRunners;
 
 class Program
 {

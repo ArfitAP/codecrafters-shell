@@ -1,7 +1,6 @@
-﻿
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace CodeCrafters.Shell.src
+namespace CodeCrafters.Shell.src.CommandRunners
 {
     internal class ExternalCommandRunner
     {

@@ -1,5 +1,6 @@
-﻿
-namespace CodeCrafters.Shell.src
+﻿using CodeCrafters.Shell.src.CommandRunners;
+
+namespace CodeCrafters.Shell.src.AutoCompletion
 {
     internal class AutoCompletionManager
     {
@@ -11,18 +12,20 @@ namespace CodeCrafters.Shell.src
             this.environmentManager = environmentManager;
         }
 
-        public string[] GetSuggestions(string text, bool isFirstWord, out bool isFolder)
+        public AutoCompletionResult[] GetSuggestions(string text, bool isFirstWord)
         {
-            isFolder = false;
             if(isFirstWord)
             {
                 var matches = BuiltInCommandRunner.builtInCommands
                     .Where(command => command.StartsWith(text, StringComparison.Ordinal))
+                    .Select(command => new AutoCompletionResult(command, AutoCompletionType.Executable))
                     .ToArray();
 
                 if (matches.Length == 0)
                 {
-                    matches = environmentManager.GetEnvironmentExecutablesWithPrefix(text);
+                    matches = environmentManager.GetEnvironmentExecutablesWithPrefix(text)
+                        .Select(executable => new AutoCompletionResult(executable, AutoCompletionType.Executable))
+                        .ToArray();
                 }
 
                 return matches;
@@ -33,23 +36,31 @@ namespace CodeCrafters.Shell.src
                 var lastNestedPart = nestedpaths.Last();
                 var serachPath = Path.Combine([Directory.GetCurrentDirectory(), ..nestedpaths.Take(nestedpaths.Length - 1).ToArray()]);
 
+                AutoCompletionResult[] matches = Array.Empty<AutoCompletionResult>();
+
                 var allfiles = Directory.GetFiles(serachPath);
 
-                var matches = allfiles
+                var matchedFiles = allfiles
                     .Where(file => Path.GetFileName(file).StartsWith(lastNestedPart, StringComparison.Ordinal))
                     .Select(file => Path.Combine([.. nestedpaths.Take(nestedpaths.Length - 1), Path.GetFileName(file)]))
                     .ToArray();
 
-                if(matches.Any()) return matches;
+                foreach (var file in matchedFiles)
+                {
+                    matches = matches.Append(new AutoCompletionResult(file, AutoCompletionType.File)).ToArray();
+                }
 
                 var allDirs = Directory.GetDirectories(serachPath);
 
-                matches = allDirs
+                var matchedDirs = allDirs
                     .Where(file => Path.GetFileName(file).StartsWith(lastNestedPart, StringComparison.Ordinal))
                     .Select(file => Path.Combine([..nestedpaths.Take(nestedpaths.Length - 1), Path.GetFileName(file)]))
                     .ToArray();
 
-                if (matches.Any()) isFolder = true;
+                foreach (var dir in matchedDirs)
+                {
+                    matches = matches.Append(new AutoCompletionResult(dir, AutoCompletionType.Folder)).ToArray();
+                }
 
                 return matches;
             }

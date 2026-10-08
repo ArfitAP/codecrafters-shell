@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CodeCrafters.Shell.src.AutoCompletion;
 using System.Text;
 
 namespace CodeCrafters.Shell.src
@@ -166,10 +165,10 @@ namespace CodeCrafters.Shell.src
 
             bool isFirstWord = wordStart == 0;
 
-            IEnumerable<string> candidates = _autoCompletionManager.GetSuggestions(prefix, isFirstWord, out bool isFolder);
+            AutoCompletionResult[] candidates = _autoCompletionManager.GetSuggestions(prefix, isFirstWord);
 
             var matches = candidates
-                .OrderBy(c => c)
+                .OrderBy(c => c.matchedText)
                 .ToList();
 
             if (matches.Count == 0)
@@ -181,7 +180,7 @@ namespace CodeCrafters.Shell.src
             if (matches.Count == 1)
             {
                 // Single match: complete it and add a trailing space
-                string completion = matches[0] + (isFolder ? Path.DirectorySeparatorChar.ToString() : " ");
+                string completion = matches[0].matchedText + (matches[0].type == AutoCompletionType.Folder ? Path.DirectorySeparatorChar.ToString() : " ");
                 buffer.Remove(wordStart, cursor - wordStart);
                 buffer.Insert(wordStart, completion);
                 cursor = wordStart + completion.Length;
@@ -190,7 +189,7 @@ namespace CodeCrafters.Shell.src
             }
 
             // Multiple matches: complete the longest common prefix
-            string common = LongestCommonPrefix(matches);
+            string common = LongestCommonPrefix(matches.Select(m => m.matchedText).ToList());
             if (common.Length > prefix.Length)
             {
                 buffer.Remove(wordStart, cursor - wordStart);
@@ -202,7 +201,7 @@ namespace CodeCrafters.Shell.src
             {
                 // Second TAB in a row: list all possibilities (like bash)
                 Console.WriteLine();
-                Console.WriteLine(string.Join("  ", matches));
+                Console.WriteLine(string.Join("  ", matches.Select(m => m.matchedText + (m.type == AutoCompletionType.Folder ? Path.DirectorySeparatorChar.ToString() : ""))));
                 Redraw(prompt, buffer, cursor, fullRedrawOnNewLine: true);
             }
             else

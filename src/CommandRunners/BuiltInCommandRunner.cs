@@ -1,5 +1,4 @@
-﻿
-namespace CodeCrafters.Shell.src
+﻿namespace CodeCrafters.Shell.src.CommandRunners
 {
     internal class BuiltInCommandRunner
     {
