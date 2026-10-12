@@ -48,6 +48,13 @@ namespace CodeCrafters.Shell.src.CommandRunners
 
         public List<BackgroundJobInfo> GetBackgroundProcesses()
         {
+            Reap();
+
+            return backgroundProcesses.Values.ToList();
+        }
+
+        public void Reap(bool printDoneJobs = false)
+        {
             foreach (int i in completedProcesses)
             {
                 if (backgroundProcesses.ContainsKey(i))
@@ -63,10 +70,22 @@ namespace CodeCrafters.Shell.src.CommandRunners
                 {
                     jobInfo.Status = "Done".PadRight(24);
                     completedProcesses.Add(jobInfo.Id);
+
+                    if (printDoneJobs)
+                    {
+                        char recentnessChar = ' ';
+                        if (jobInfo.OrderNumber == GetMaxOrderNumber())
+                        {
+                            recentnessChar = '+';
+                        }
+                        else if (jobInfo.OrderNumber == GetSecondMaxOrderNumber())
+                        {
+                            recentnessChar = '-';
+                        }
+                        Console.WriteLine($"[{jobInfo.Id}]{recentnessChar}  {jobInfo.Status} {jobInfo.Command}");
+                    }
                 }
             }
-
-            return backgroundProcesses.Values.ToList();
         }
 
         public int GetMaxOrderNumber()

@@ -18,6 +18,7 @@ class Program
 
         while (true)    
         {
+            backgroundCommandRunner.Reap(true);
             string? input = editor.ReadLine("$ ");
 
             List<string> args = InputParser.ParseInput(input!);
