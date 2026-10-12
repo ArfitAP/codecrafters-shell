@@ -2,7 +2,7 @@
 {
     internal class BuiltInCommandRunner
     {
-        public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete"];
+        public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete", "jobs"];
 
         private EnvironmentManager environmentManager;
         private Dictionary<string, string> completionDictionary;
@@ -17,6 +17,10 @@
             if (command == "pwd")
             {
                 outputWriter.WriteOutput(Directory.GetCurrentDirectory());
+                return true;
+            }
+            else if(command == "jobs")
+            {
                 return true;
             }
             else if (command == "complete")
