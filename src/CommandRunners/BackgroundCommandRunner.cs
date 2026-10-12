@@ -55,14 +55,7 @@ namespace CodeCrafters.Shell.src.CommandRunners
 
         public void Reap(bool printDoneJobs = false)
         {
-            foreach (int i in completedProcesses)
-            {
-                if (backgroundProcesses.ContainsKey(i))
-                {
-                    backgroundProcesses.Remove(i);
-                }
-            }
-            completedProcesses.Clear();
+            RemoveCompletedProcesses();
 
             foreach (var jobInfo in backgroundProcesses.Values)
             {
@@ -86,6 +79,23 @@ namespace CodeCrafters.Shell.src.CommandRunners
                     }
                 }
             }
+
+            if(printDoneJobs)
+            {
+                RemoveCompletedProcesses();
+            }
+        }
+
+        private void RemoveCompletedProcesses()
+        {
+            foreach (int i in completedProcesses)
+            {
+                if (backgroundProcesses.ContainsKey(i))
+                {
+                    backgroundProcesses.Remove(i);
+                }
+            }
+            completedProcesses.Clear();
         }
 
         public int GetMaxOrderNumber()
