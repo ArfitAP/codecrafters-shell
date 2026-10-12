@@ -15,7 +15,7 @@ namespace CodeCrafters.Shell.src.AutoCompletion
             this.builtInCommandRunner = builtInCommandRunner;
         }
 
-        public AutoCompletionResult[] GetSuggestions(string wholeCommand, string text, bool isFirstWord)
+        public AutoCompletionResult[] GetSuggestions(string wholeCommand, string text, bool isFirstWord, int cursor)
         {
             if(isFirstWord)
             {
@@ -37,7 +37,7 @@ namespace CodeCrafters.Shell.src.AutoCompletion
             {
                 var scriptPath = builtInCommandRunner.GetCompleterScriptPath(wholeCommand.Split(' ')[0]);
 
-                return GetCompleterSuggestions(scriptPath, wholeCommand.Split(' ')[0], text, wholeCommand.Split(' ').Length > 2 ? wholeCommand.Split(' ')[^2] : string.Empty)
+                return GetCompleterSuggestions(scriptPath, wholeCommand, text, cursor)
                     .Select(s => new AutoCompletionResult(s, AutoCompletionType.Executable))
                     .ToArray();
             }
@@ -77,8 +77,12 @@ namespace CodeCrafters.Shell.src.AutoCompletion
             }
         }
 
-        private string[] GetCompleterSuggestions(string scriptPath, string arg1, string arg2, string arg3)
+        private string[] GetCompleterSuggestions(string scriptPath, string wholeCommand, string text, int cursor)
         {
+            string arg1 = wholeCommand.Split(' ')[0];
+            string arg2 = text;
+            string arg3 = wholeCommand.Split(' ').Length > 2 ? wholeCommand.Split(' ')[^2] : string.Empty;
+
             var processInfo = new ProcessStartInfo
             {
                 FileName = scriptPath,
@@ -86,7 +90,12 @@ namespace CodeCrafters.Shell.src.AutoCompletion
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                Arguments = $"{arg1} {arg2} {arg3}"
+                Arguments = $"{arg1} {arg2} {arg3}",
+                EnvironmentVariables =
+                {
+                    ["COMP_LINE"] = wholeCommand,
+                    ["COMP_POINT"] = cursor.ToString()
+                }
             };
 
             using var process = Process.Start(processInfo);
