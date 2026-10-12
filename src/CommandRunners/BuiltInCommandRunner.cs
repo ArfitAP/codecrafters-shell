@@ -5,10 +5,11 @@
         public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete"];
 
         private EnvironmentManager environmentManager;
-
+        private Dictionary<string, string> completionDictionary;
         public BuiltInCommandRunner(EnvironmentManager environmentManager)
         {
             this.environmentManager = environmentManager;
+            this.completionDictionary = new Dictionary<string, string>();
         }
 
         public bool TryExecuteBuiltInCommand(string command, List<string> args, OutputWriter outputWriter)
@@ -20,10 +21,22 @@
             }
             else if (command == "complete")
             {
-                if(args.Contains("-p"))
+                if (args.Contains("-C"))
+                {
+                    int index = args.IndexOf("-C");
+                    completionDictionary[args[index + 2]] = args[index + 1];
+                }
+                else if (args.Contains("-p"))
                 {
                     int index = args.IndexOf("-p");
-                    outputWriter.WriteError($"complete: {args[index + 1]}: no completion specification");
+                    if(completionDictionary.ContainsKey(args[index + 1]))
+                    {
+                        outputWriter.WriteOutput($"complete -C '{completionDictionary[args[index + 1]]}' {args[index + 1]}");
+                    }
+                    else
+                    {
+                        outputWriter.WriteError($"complete: {args[index + 1]}: no completion specification");
+                    }
                 }
                 return true;
             }
