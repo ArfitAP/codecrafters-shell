@@ -29,7 +29,7 @@
                 else if (args.Contains("-p"))
                 {
                     int index = args.IndexOf("-p");
-                    if(completionDictionary.ContainsKey(args[index + 1]))
+                    if (completionDictionary.ContainsKey(args[index + 1]))
                     {
                         outputWriter.WriteOutput($"complete -C '{completionDictionary[args[index + 1]]}' {args[index + 1]}");
                     }
@@ -118,5 +118,14 @@
             return false;
         }
 
+        public bool IsCompleterRegistered(string command)
+        {
+            return completionDictionary.ContainsKey(command);
+        }
+
+        public string GetCompleterScriptPath(string command)
+        {
+            return completionDictionary[command];
+        }
     }
 }

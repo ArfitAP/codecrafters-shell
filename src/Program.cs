@@ -11,7 +11,7 @@ class Program
         ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager);
         BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager);
 
-        AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager);
+        AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);
 
         LineEditor editor = new LineEditor(autoCompletionManager);
 

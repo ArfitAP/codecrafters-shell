@@ -1,4 +1,5 @@
 ﻿using CodeCrafters.Shell.src.CommandRunners;
+using System.Diagnostics;
 
 namespace CodeCrafters.Shell.src.AutoCompletion
 {
@@ -6,13 +7,15 @@ namespace CodeCrafters.Shell.src.AutoCompletion
     {
         // characters to start completion from
         private EnvironmentManager environmentManager;
+        private BuiltInCommandRunner builtInCommandRunner;
 
-        public AutoCompletionManager(EnvironmentManager environmentManager)
+        public AutoCompletionManager(EnvironmentManager environmentManager, BuiltInCommandRunner builtInCommandRunner)
         {
             this.environmentManager = environmentManager;
+            this.builtInCommandRunner = builtInCommandRunner;
         }
 
-        public AutoCompletionResult[] GetSuggestions(string text, bool isFirstWord)
+        public AutoCompletionResult[] GetSuggestions(string wholeCommand, string text, bool isFirstWord)
         {
             if(isFirstWord)
             {
@@ -29,6 +32,14 @@ namespace CodeCrafters.Shell.src.AutoCompletion
                 }
 
                 return matches;
+            }
+            else if (builtInCommandRunner.IsCompleterRegistered(wholeCommand.Split(' ')[0]))
+            {
+                var scriptPath = builtInCommandRunner.GetCompleterScriptPath(wholeCommand.Split(' ')[0]);
+
+                return GetCompleterSuggestions(scriptPath)
+                    .Select(s => new AutoCompletionResult(s, AutoCompletionType.Executable))
+                    .ToArray();
             }
             else
             {
@@ -64,6 +75,29 @@ namespace CodeCrafters.Shell.src.AutoCompletion
 
                 return matches;
             }
+        }
+
+        private string[] GetCompleterSuggestions(string scriptPath)
+        {
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = scriptPath,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processInfo);
+
+            if (process == null)
+                return [];
+
+            string output = process.StandardOutput.ReadToEnd();
+
+            process.WaitForExit();
+
+            return output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

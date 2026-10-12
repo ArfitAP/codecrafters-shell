@@ -165,7 +165,7 @@ namespace CodeCrafters.Shell.src
 
             bool isFirstWord = wordStart == 0;
 
-            AutoCompletionResult[] candidates = _autoCompletionManager.GetSuggestions(prefix, isFirstWord);
+            AutoCompletionResult[] candidates = _autoCompletionManager.GetSuggestions(text, prefix, isFirstWord);
 
             var matches = candidates
                 .OrderBy(c => c.matchedText)
