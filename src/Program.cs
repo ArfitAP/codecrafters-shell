@@ -8,7 +8,8 @@ class Program
     {
         EnvironmentManager environmentManager = new EnvironmentManager();
 
-        ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager);
+        BackgroundCommandRunner backgroundCommandRunner = new BackgroundCommandRunner();
+        ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner);
         BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager);
 
         AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);

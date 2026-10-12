@@ -5,17 +5,27 @@ namespace CodeCrafters.Shell.src.CommandRunners
     internal class ExternalCommandRunner
     {
         private EnvironmentManager environmentManager;
+        private BackgroundCommandRunner backgroundCommandRunner;
 
-        public ExternalCommandRunner(EnvironmentManager environmentManager)
+        public ExternalCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner)
         {
             this.environmentManager = environmentManager;
+            this.backgroundCommandRunner = backgroundCommandRunner;
         }
 
         public bool TryExecuteExternalCommand(string command, List<string> args, OutputWriter outputWriter)
         {
             string fullPath = environmentManager.GetCommandPath(args[0]);
+            bool isBackgroundProcess = args[^1].Equals("&");
 
-            if (!string.IsNullOrEmpty(fullPath))
+            if (isBackgroundProcess)
+            {
+                args = args.Take(args.Count - 1).ToList();
+                (int id, int pid) result = backgroundCommandRunner.RunCommandInBackground(args[0], args.Skip(1).ToList());
+                Console.WriteLine($"[{result.id}] {result.pid}");
+                return true;
+            }
+            else if (!string.IsNullOrEmpty(fullPath))
             {
                 var processStartInfo = new ProcessStartInfo
                 {
