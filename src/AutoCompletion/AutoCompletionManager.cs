@@ -37,7 +37,7 @@ namespace CodeCrafters.Shell.src.AutoCompletion
             {
                 var scriptPath = builtInCommandRunner.GetCompleterScriptPath(wholeCommand.Split(' ')[0]);
 
-                return GetCompleterSuggestions(scriptPath)
+                return GetCompleterSuggestions(scriptPath, wholeCommand.Split(' ')[0], text, wholeCommand.Split(' ').Length > 2 ? wholeCommand.Split(' ')[^2] : string.Empty)
                     .Select(s => new AutoCompletionResult(s, AutoCompletionType.Executable))
                     .ToArray();
             }
@@ -77,7 +77,7 @@ namespace CodeCrafters.Shell.src.AutoCompletion
             }
         }
 
-        private string[] GetCompleterSuggestions(string scriptPath)
+        private string[] GetCompleterSuggestions(string scriptPath, string arg1, string arg2, string arg3)
         {
             var processInfo = new ProcessStartInfo
             {
@@ -85,7 +85,8 @@ namespace CodeCrafters.Shell.src.AutoCompletion
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                Arguments = $"{arg1} {arg2} {arg3}"
             };
 
             using var process = Process.Start(processInfo);
