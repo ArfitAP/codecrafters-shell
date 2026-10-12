@@ -81,7 +81,7 @@ namespace CodeCrafters.Shell.src.AutoCompletion
         {
             string arg1 = wholeCommand.Split(' ')[0];
             string arg2 = text;
-            string arg3 = wholeCommand.Split(' ').Length > 2 ? wholeCommand.Split(' ')[^2] : string.Empty;
+            string arg3 = wholeCommand.Split(' ')[^2];
 
             var processInfo = new ProcessStartInfo
             {
@@ -90,7 +90,7 @@ namespace CodeCrafters.Shell.src.AutoCompletion
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                Arguments = $"{arg1} {arg2} {arg3}",
+                ArgumentList = { arg1, arg2, arg3 },
                 EnvironmentVariables =
                 {
                     ["COMP_LINE"] = wholeCommand,
