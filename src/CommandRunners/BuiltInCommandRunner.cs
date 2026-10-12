@@ -35,7 +35,7 @@
                     {
                         recentnessChar = '-';
                     }
-                    outputWriter.WriteOutput($"[{process.Id}]{recentnessChar}  {process.status} {process.command}");
+                    outputWriter.WriteOutput($"[{process.Id}]{recentnessChar}  {process.Status} {process.Command}");
                 });
                 return true;
             }
