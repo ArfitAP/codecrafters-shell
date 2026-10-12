@@ -34,6 +34,15 @@ namespace CodeCrafters.Shell.src.CommandRunners
                     {
                         foreach(var jobInfo in backgroundProcesses.Values)
                         {
+                            if(jobInfo.latest)
+                            {
+                                jobInfo.secondlatest = true;
+                            }
+                            else
+                            {
+                                jobInfo.secondlatest = false;
+                            }
+
                             jobInfo.latest = false;
                         }
 

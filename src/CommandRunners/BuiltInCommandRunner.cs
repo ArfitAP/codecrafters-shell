@@ -26,7 +26,16 @@
             {
                 backgroundCommandRunner.GetBackgroundProcesses().ForEach(process =>
                 {
-                    outputWriter.WriteOutput($"[{process.Id}]{(process.latest ? '+' : ' ')}  {process.status} {process.command}");
+                    char recentnessChar = ' ';
+                    if (process.latest)
+                    {
+                        recentnessChar = '+';
+                    }
+                    else if (process.secondlatest)
+                    {
+                        recentnessChar = '-';
+                    }
+                    outputWriter.WriteOutput($"[{process.Id}]{recentnessChar}  {process.status} {process.command}");
                 });
                 return true;
             }
