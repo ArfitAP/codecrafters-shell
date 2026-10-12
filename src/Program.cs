@@ -10,7 +10,7 @@ class Program
 
         BackgroundCommandRunner backgroundCommandRunner = new BackgroundCommandRunner();
         ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner);
-        BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager);
+        BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager, backgroundCommandRunner);
 
         AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);
 

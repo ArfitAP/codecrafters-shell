@@ -21,8 +21,11 @@ namespace CodeCrafters.Shell.src.CommandRunners
             if (isBackgroundProcess)
             {
                 args = args.Take(args.Count - 1).ToList();
-                (int id, int pid) result = backgroundCommandRunner.RunCommandInBackground(args[0], args.Skip(1).ToList());
-                Console.WriteLine($"[{result.id}] {result.pid}");
+
+                (int id, BackgroundJobInfo jobInfo) result = backgroundCommandRunner.RunCommandInBackground(args[0], args.Skip(1).ToList());
+
+                Console.WriteLine($"[{result.id}] {result.jobInfo.Pid}");
+
                 return true;
             }
             else if (!string.IsNullOrEmpty(fullPath))

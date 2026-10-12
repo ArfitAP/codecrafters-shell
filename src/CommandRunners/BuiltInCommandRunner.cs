@@ -5,10 +5,13 @@
         public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete", "jobs"];
 
         private EnvironmentManager environmentManager;
+        private BackgroundCommandRunner backgroundCommandRunner;
         private Dictionary<string, string> completionDictionary;
-        public BuiltInCommandRunner(EnvironmentManager environmentManager)
+
+        public BuiltInCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner)
         {
             this.environmentManager = environmentManager;
+            this.backgroundCommandRunner = backgroundCommandRunner;
             this.completionDictionary = new Dictionary<string, string>();
         }
 
@@ -21,6 +24,10 @@
             }
             else if(command == "jobs")
             {
+                backgroundCommandRunner.GetBackgroundProcesses().ForEach(process =>
+                {
+                    outputWriter.WriteOutput($"[{process.Id}]{(process.latest ? '+' : ' ')}  {process.status} {process.command}");
+                });
                 return true;
             }
             else if (command == "complete")

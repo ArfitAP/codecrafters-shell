@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace CodeCrafters.Shell.src.CommandRunners
 {
     internal class BackgroundCommandRunner
     {
-        private Dictionary<int, System.Diagnostics.Process> backgroundProcesses = new();
+        private Dictionary<int, BackgroundJobInfo> backgroundProcesses = new();
 
-        public (int, int) RunCommandInBackground(string command, List<string> args)
+        public (int, BackgroundJobInfo) RunCommandInBackground(string command, List<string> args)
         {
             var processStartInfo = new System.Diagnostics.ProcessStartInfo
             {
@@ -35,13 +32,23 @@ namespace CodeCrafters.Shell.src.CommandRunners
                     }
                     else
                     {
-                        backgroundProcesses.Add(i, process);
+                        foreach(var jobInfo in backgroundProcesses.Values)
+                        {
+                            jobInfo.latest = false;
+                        }
+
+                        backgroundProcesses.Add(i, new BackgroundJobInfo(i, process.Id, string.Join(" ", [command, ..args]), "Running".PadRight(24)));
                         break;
                     }
                 }
             }
 
-            return (i, process!.Id); // Return the process ID for background tracking
+            return (i, backgroundProcesses[i]); // Return the process ID for background tracking
+        }
+
+        public List<BackgroundJobInfo> GetBackgroundProcesses()
+        {
+            return backgroundProcesses.Values.ToList();
         }
     }
 }
