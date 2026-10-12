@@ -26,6 +26,14 @@
                     int index = args.IndexOf("-C");
                     completionDictionary[args[index + 2]] = args[index + 1];
                 }
+                else if (args.Contains("-r"))
+                {
+                    int index = args.IndexOf("-r");
+                    if (completionDictionary.ContainsKey(args[index + 1]))
+                    {
+                        completionDictionary.Remove(args[index + 1]);
+                    }
+                }
                 else if (args.Contains("-p"))
                 {
                     int index = args.IndexOf("-p");
