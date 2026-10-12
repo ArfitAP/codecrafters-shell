@@ -35,21 +35,9 @@ namespace CodeCrafters.Shell.src.CommandRunners
                     }
                     else
                     {
-                        foreach(var jobInfo in backgroundProcesses.Values)
-                        {
-                            if(jobInfo.latest)
-                            {
-                                jobInfo.secondlatest = true;
-                            }
-                            else
-                            {
-                                jobInfo.secondlatest = false;
-                            }
+                        var maxOrderNumber = backgroundProcesses.Values.Any() ? backgroundProcesses.Values.Max(j => j.OrderNumber) : 0;
 
-                            jobInfo.latest = false;
-                        }
-
-                        backgroundProcesses.Add(i, new BackgroundJobInfo(i, process.Id, string.Join(" ", [command, ..args]), "Running".PadRight(24), process));
+                        backgroundProcesses.Add(i, new BackgroundJobInfo(i, process.Id, maxOrderNumber + 1, string.Join(" ", [command, ..args]), "Running".PadRight(24), process));
                         break;
                     }
                 }
@@ -79,6 +67,17 @@ namespace CodeCrafters.Shell.src.CommandRunners
             }
 
             return backgroundProcesses.Values.ToList();
+        }
+
+        public int GetMaxOrderNumber()
+        {
+            return backgroundProcesses.Values.Any() ? backgroundProcesses.Values.Max(j => j.OrderNumber) : 0;
+        }
+
+        public int GetSecondMaxOrderNumber()
+        {
+            var orderedValues = backgroundProcesses.Values.OrderByDescending(j => j.OrderNumber).ToList();
+            return orderedValues.Count > 1 ? orderedValues[1].OrderNumber : 0;
         }
     }
 }

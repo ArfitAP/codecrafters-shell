@@ -27,11 +27,11 @@
                 backgroundCommandRunner.GetBackgroundProcesses().ForEach(process =>
                 {
                     char recentnessChar = ' ';
-                    if (process.latest)
+                    if (process.OrderNumber == backgroundCommandRunner.GetMaxOrderNumber())
                     {
                         recentnessChar = '+';
                     }
-                    else if (process.secondlatest)
+                    else if (process.OrderNumber == backgroundCommandRunner.GetSecondMaxOrderNumber())
                     {
                         recentnessChar = '-';
                     }
