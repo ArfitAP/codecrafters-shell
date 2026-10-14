@@ -6,12 +6,14 @@
 
         private EnvironmentManager environmentManager;
         private BackgroundCommandRunner backgroundCommandRunner;
+        private HistoryManager historyManager;
         private Dictionary<string, string> completionDictionary;
 
-        public BuiltInCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner)
+        public BuiltInCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, HistoryManager historyManager)
         {
             this.environmentManager = environmentManager;
             this.backgroundCommandRunner = backgroundCommandRunner;
+            this.historyManager = historyManager;
             this.completionDictionary = new Dictionary<string, string>();
         }
 
@@ -20,6 +22,11 @@
             if (command == "pwd")
             {
                 outputWriter.WriteOutput(Directory.GetCurrentDirectory());
+                return true;
+            }
+            if (command == "history")
+            {
+                historyManager.PrintHistory(outputWriter);
                 return true;
             }
             else if(command == "jobs")

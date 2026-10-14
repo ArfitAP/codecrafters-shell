@@ -9,12 +9,14 @@ namespace CodeCrafters.Shell.src.CommandRunners
         private EnvironmentManager environmentManager;
         private BackgroundCommandRunner backgroundCommandRunner;
         private BuiltInCommandRunner builtInCommandRunner;
+        private HistoryManager historyManager;
 
-        public ExternalCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, BuiltInCommandRunner builtInCommandRunner)
+        public ExternalCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, BuiltInCommandRunner builtInCommandRunner, HistoryManager historyManager)
         {
             this.environmentManager = environmentManager;
             this.backgroundCommandRunner = backgroundCommandRunner;
             this.builtInCommandRunner = builtInCommandRunner;
+            this.historyManager = historyManager;
         }
 
         public bool TryExecuteExternalCommand(string command, List<string> args, OutputWriter outputWriter)

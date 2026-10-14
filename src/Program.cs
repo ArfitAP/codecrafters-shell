@@ -7,20 +7,22 @@ class Program
     static async Task Main()
     {
         EnvironmentManager environmentManager = new EnvironmentManager();
+        HistoryManager historyManager = new HistoryManager();
 
         BackgroundCommandRunner backgroundCommandRunner = new BackgroundCommandRunner();
-        BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager, backgroundCommandRunner);
-        ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner, builtInCommandRunner);
+        BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager, backgroundCommandRunner, historyManager);
+        ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner, builtInCommandRunner, historyManager);
 
         AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);
 
         LineEditor editor = new LineEditor(autoCompletionManager);
-
+        
         while (true)    
         {
             backgroundCommandRunner.Reap(true);
             string? input = editor.ReadLine("$ ");
 
+            historyManager.AddToHistory(input!);
             List<List<string>> commandParts = InputParser.ParseInput(input!);
 
             if(commandParts.Count == 1)
