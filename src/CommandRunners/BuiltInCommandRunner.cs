@@ -26,7 +26,8 @@
             }
             if (command == "history")
             {
-                historyManager.PrintHistory(outputWriter);
+                int n = args.Count > 1 ? int.Parse(args[1]) : Int32.MaxValue;
+                historyManager.PrintHistory(n, outputWriter);
                 return true;
             }
             else if(command == "jobs")

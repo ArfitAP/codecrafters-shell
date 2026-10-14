@@ -10,9 +10,10 @@ namespace CodeCrafters.Shell.src
             history.Add(command);
         }
 
-        public void PrintHistory(OutputWriter outputWriter)
+        public void PrintHistory(int n, OutputWriter outputWriter)
         {
-            for (int i = 0; i < history.Count; i++)
+            int start = Math.Max(0, history.Count - n);
+            for (int i = start; i < history.Count; i++)
             {
                 outputWriter.WriteOutput($"    {i + 1}  {history[i]}");
             }
