@@ -9,8 +9,8 @@ class Program
         EnvironmentManager environmentManager = new EnvironmentManager();
 
         BackgroundCommandRunner backgroundCommandRunner = new BackgroundCommandRunner();
-        ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner);
         BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager, backgroundCommandRunner);
+        ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner, builtInCommandRunner);
 
         AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);
 
@@ -28,7 +28,7 @@ class Program
                 List<string> args = commandParts[0];
                 string command = args[0];
 
-                OutputWriter outputWriter = new OutputWriter(ref args);
+                OutputWriter outputWriter = new OutputWriter(ref args, Console.Out, Console.Error);
 
                 if (command == "exit")
                 {

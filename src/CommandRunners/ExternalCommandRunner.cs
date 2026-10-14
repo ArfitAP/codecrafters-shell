@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.IO.Pipelines;
+using System.Text;
 
 namespace CodeCrafters.Shell.src.CommandRunners
 {
@@ -6,11 +8,13 @@ namespace CodeCrafters.Shell.src.CommandRunners
     {
         private EnvironmentManager environmentManager;
         private BackgroundCommandRunner backgroundCommandRunner;
+        private BuiltInCommandRunner builtInCommandRunner;
 
-        public ExternalCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner)
+        public ExternalCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, BuiltInCommandRunner builtInCommandRunner)
         {
             this.environmentManager = environmentManager;
             this.backgroundCommandRunner = backgroundCommandRunner;
+            this.builtInCommandRunner = builtInCommandRunner;
         }
 
         public bool TryExecuteExternalCommand(string command, List<string> args, OutputWriter outputWriter)
@@ -115,96 +119,112 @@ namespace CodeCrafters.Shell.src.CommandRunners
                 return;
 
             var processes = new List<Process>();
+            var pipes = new List<Pipe>();
+            var tasks = new List<Task>();
+            var ownedStreams = new List<Stream>();
 
             try
             {
-                // 1. Resolve all commands before starting any process.
-                var startInfos = new List<ProcessStartInfo>();
-
+                // Validate all external commands before starting the pipeline.
                 foreach (var args in commandParts)
                 {
-                    string fullPath = environmentManager.GetCommandPath(args[0]);
-
-                    if (string.IsNullOrEmpty(fullPath))
+                    if (!IsBuiltin(args[0]))
                     {
-                        Console.WriteLine($"{args[0]}: command not found");
-                        return;
+                        string fullPath =
+                            environmentManager.GetCommandPath(args[0]);
+
+                        if (string.IsNullOrEmpty(fullPath))
+                        {
+                            Console.WriteLine(
+                                $"{args[0]}: command not found");
+                            return;
+                        }
+                    }
+                }
+
+                // One pipe connects each adjacent pair of stages.
+                for (int i = 0; i < commandParts.Count - 1; i++)
+                    pipes.Add(new Pipe());
+
+                for (int i = 0; i < commandParts.Count; i++)
+                {
+                    Stream input;
+                    Stream output;
+
+                    if (i == 0)
+                    {
+                        input = Stream.Null;
+                    }
+                    else
+                    {
+                        input = pipes[i - 1].Reader.AsStream();
+                        ownedStreams.Add(input);
                     }
 
-                    var startInfo = new ProcessStartInfo
+                    if (i == commandParts.Count - 1)
                     {
-                        FileName = fullPath,
-                        UseShellExecute = false,
-                        RedirectStandardInput = startInfos.Count > 0,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true
-                    };
-
-                    foreach (var arg in args.Skip(1))
-                        startInfo.ArgumentList.Add(arg);
-
-                    startInfos.Add(startInfo);
-                }
-
-                // 2. Create and start all processes.
-                foreach (var startInfo in startInfos)
-                {
-                    var process = new Process
+                        output = Console.OpenStandardOutput();
+                    }
+                    else
                     {
-                        StartInfo = startInfo
-                    };
+                        output = pipes[i].Writer.AsStream();
+                        ownedStreams.Add(output);
+                    }
 
-                    processes.Add(process);
-                    process.Start();
-                }
+                    var args = commandParts[i];
 
-                // 3. Start draining stderr for every process immediately.
-                var errorTasks = processes
-                    .Select(p => p.StandardError.BaseStream.CopyToAsync(
-                        Console.OpenStandardError()))
-                    .ToList();
-
-                // 4. Connect adjacent processes concurrently.
-                var pipeTasks = new List<Task>();
-
-                for (int i = 0; i < processes.Count - 1; i++)
-                {
-                    var source = processes[i];
-                    var destination = processes[i + 1];
-
-                    pipeTasks.Add(Task.Run(async () =>
+                    if (IsBuiltin(args[0]))
                     {
-                        try
+                        // Built-ins run inside this shell process.
+                        Pipe? outputPipe = i < commandParts.Count - 1 ? pipes[i] : null;
+
+                        tasks.Add(RunBuiltinStageAsync(
+                            args, input, output, outputPipe));
+                    }
+                    else
+                    {
+                        string fullPath =
+                            environmentManager.GetCommandPath(args[0]);
+
+                        var startInfo = new ProcessStartInfo
                         {
-                            await source.StandardOutput.BaseStream.CopyToAsync(
-                                destination.StandardInput.BaseStream);
-                        }
-                        finally
+                            FileName = fullPath,
+                            UseShellExecute = false,
+                            RedirectStandardInput = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true
+                        };
+
+                        foreach (var arg in args.Skip(1))
+                            startInfo.ArgumentList.Add(arg);
+
+                        var process = new Process
                         {
-                            // Signal EOF to the downstream command.
-                            destination.StandardInput.Close();
-                        }
-                    }));
+                            StartInfo = startInfo
+                        };
+
+                        processes.Add(process);
+                        process.Start();
+
+                        // Feed this process from the preceding stage.
+                        tasks.Add(FeedProcessAsync(process, input));
+
+                        // Forward this process's output to the next stage.
+                        Pipe? outputPipe = i < commandParts.Count - 1 ? pipes[i] : null;
+                        tasks.Add(ForwardOutputAsync(process, output, outputPipe));
+
+                        // Drain stderr concurrently to prevent pipe blockage.
+                        tasks.Add(process.StandardError.BaseStream.CopyToAsync(
+                            Console.OpenStandardError()));
+
+                        tasks.Add(process.WaitForExitAsync());
+                    }
                 }
 
-                // 5. Consume the last process's output concurrently.
-                var lastOutputTask = processes[^1]
-                    .StandardOutput.BaseStream.CopyToAsync(
-                        Console.OpenStandardOutput());
-
-                // 6. Wait for all processes and stream operations.
-                var exitTasks = processes
-                    .Select(p => p.WaitForExitAsync());
-
-                await Task.WhenAll(
-                    pipeTasks
-                        .Concat(errorTasks)
-                        .Append(lastOutputTask)
-                        .Concat(exitTasks));
+                await Task.WhenAll(tasks);
             }
             finally
             {
-                // 7. Clean up even if an operation fails.
                 foreach (var process in processes)
                 {
                     try
@@ -214,16 +234,110 @@ namespace CodeCrafters.Shell.src.CommandRunners
                     }
                     catch (InvalidOperationException)
                     {
-                        // The process may not have started.
+                        // Process was never started or is already detached.
                     }
                     catch (System.ComponentModel.Win32Exception)
                     {
-                        // The process may already have exited.
+                        // Process has already exited.
                     }
-
-                    process.Dispose();
                 }
+
+                foreach (var stream in ownedStreams)
+                    await stream.DisposeAsync();
+
+                foreach (var pipe in pipes)
+                {
+                    await pipe.Reader.CompleteAsync();
+                    await pipe.Writer.CompleteAsync();
+                }
+
+                foreach (var process in processes)
+                    process.Dispose();
             }
+        }
+
+        private static async Task FeedProcessAsync(
+            Process process,
+            Stream input)
+        {
+            try
+            {
+                await input.CopyToAsync(
+                    process.StandardInput.BaseStream);
+            }
+            finally
+            {
+                process.StandardInput.Close();
+            }
+        }
+
+        private static async Task ForwardOutputAsync(
+            Process process,
+            Stream output,
+            Pipe? outputPipe)
+        {
+            try
+            {
+                await process.StandardOutput.BaseStream.CopyToAsync(output);
+                await output.FlushAsync();
+            }
+            finally
+            {
+                if (outputPipe is not null)
+                    await outputPipe.Writer.CompleteAsync();
+            }
+        }
+
+        private async Task RunBuiltinStageAsync(
+            List<string> args,
+            Stream input,
+            Stream output,
+            Pipe? outputPipe)
+        {
+            try
+            {
+                using var reader = new StreamReader(
+                    input, Encoding.UTF8, leaveOpen: true);
+
+                using var writer = new StreamWriter(
+                    output, new UTF8Encoding(false), leaveOpen: true)
+                {
+                    AutoFlush = true
+                };
+
+                await ExecuteBuiltinAsync(args, reader, writer);
+                await writer.FlushAsync();
+            }
+            finally
+            {
+                if (outputPipe is not null)
+                    await outputPipe.Writer.CompleteAsync();
+            }
+        }
+
+        private bool IsBuiltin(string command)
+        {
+            return BuiltInCommandRunner.builtInCommands.Contains(command);
+        }
+
+        private Task ExecuteBuiltinAsync(List<string> args, StreamReader input, StreamWriter output)
+        {
+            return Task.Run(async () =>
+            {
+                var writer = new OutputWriter(
+                    ref args,
+                    output,
+                    Console.Error);
+
+                string command = args[0];
+
+                builtInCommandRunner.TryExecuteBuiltInCommand(
+                    command,
+                    args,
+                    writer);
+
+                await output.FlushAsync();
+            });
         }
     }
 }

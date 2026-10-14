@@ -3,6 +3,9 @@ namespace CodeCrafters.Shell.src
 {
     internal class OutputWriter
     {
+        private readonly TextWriter outputStream;
+        private readonly TextWriter errorStream;
+
         public string? StandardOutputFileName { get; set; }
         public string? StandardErrorFileName { get; set; }
 
@@ -11,8 +14,11 @@ namespace CodeCrafters.Shell.src
         public bool AppendOutputToFile { get; set; }
         public bool AppendErrorToFile { get; set; }
 
-        public OutputWriter(ref List<string> args)
+        public OutputWriter(ref List<string> args, TextWriter outputStream, TextWriter errorStream)
         {
+            this.outputStream = outputStream;
+            this.errorStream = errorStream;
+
             int stdRedirectIndex = args.Count;
             int errRedirectIndex = args.Count;
             if (args.Contains(">") || args.Contains("1>"))
@@ -81,7 +87,7 @@ namespace CodeCrafters.Shell.src
             }
             else
             {
-                Console.WriteLine(output);
+                outputStream.WriteLine(output);
             }
         }
 
@@ -105,7 +111,7 @@ namespace CodeCrafters.Shell.src
             }
             else
             {
-                Console.WriteLine(output);
+                errorStream.WriteLine(output);
             }
         }
     }
