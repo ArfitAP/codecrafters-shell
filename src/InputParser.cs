@@ -4,8 +4,10 @@ namespace CodeCrafters.Shell.src
 {
     internal static class InputParser
     {
-        public static List<string> ParseInput(string input)
+        public static List<List<string>> ParseInput(string input)
         {
+            List<List<string>> commandArgs = new List<List<string>>();
+
             List<string> args = new List<string>();
             StringBuilder currentArg = new StringBuilder();
             bool inSingleQuotes = false;
@@ -44,11 +46,27 @@ namespace CodeCrafters.Shell.src
                     currentArg.Append(c);
                 }
             }
+
             if (currentArg.Length > 0 || args.Count == 0)
             {
                 args.Add(currentArg.ToString());
             }
-            return args;
+
+            List<string> currentCommandArgs = new List<string>();
+            foreach (var arg in args)
+            {
+                if (arg == "|")
+                {
+                    commandArgs.Add(currentCommandArgs);
+                    currentCommandArgs = new List<string>();
+                }
+                else
+                {
+                    currentCommandArgs.Add(arg);
+                }
+            }
+            commandArgs.Add(currentCommandArgs);
+            return commandArgs;
         }
     }
 }

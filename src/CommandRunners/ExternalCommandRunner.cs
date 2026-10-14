@@ -108,5 +108,122 @@ namespace CodeCrafters.Shell.src.CommandRunners
                 return false;
             }
         }
+
+        public async Task TryExecutePipedCommandAsync(List<List<string>> commandParts)
+        {
+            if (commandParts.Count == 0)
+                return;
+
+            var processes = new List<Process>();
+
+            try
+            {
+                // 1. Resolve all commands before starting any process.
+                var startInfos = new List<ProcessStartInfo>();
+
+                foreach (var args in commandParts)
+                {
+                    string fullPath = environmentManager.GetCommandPath(args[0]);
+
+                    if (string.IsNullOrEmpty(fullPath))
+                    {
+                        Console.WriteLine($"{args[0]}: command not found");
+                        return;
+                    }
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = fullPath,
+                        UseShellExecute = false,
+                        RedirectStandardInput = startInfos.Count > 0,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
+
+                    foreach (var arg in args.Skip(1))
+                        startInfo.ArgumentList.Add(arg);
+
+                    startInfos.Add(startInfo);
+                }
+
+                // 2. Create and start all processes.
+                foreach (var startInfo in startInfos)
+                {
+                    var process = new Process
+                    {
+                        StartInfo = startInfo
+                    };
+
+                    processes.Add(process);
+                    process.Start();
+                }
+
+                // 3. Start draining stderr for every process immediately.
+                var errorTasks = processes
+                    .Select(p => p.StandardError.BaseStream.CopyToAsync(
+                        Console.OpenStandardError()))
+                    .ToList();
+
+                // 4. Connect adjacent processes concurrently.
+                var pipeTasks = new List<Task>();
+
+                for (int i = 0; i < processes.Count - 1; i++)
+                {
+                    var source = processes[i];
+                    var destination = processes[i + 1];
+
+                    pipeTasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await source.StandardOutput.BaseStream.CopyToAsync(
+                                destination.StandardInput.BaseStream);
+                        }
+                        finally
+                        {
+                            // Signal EOF to the downstream command.
+                            destination.StandardInput.Close();
+                        }
+                    }));
+                }
+
+                // 5. Consume the last process's output concurrently.
+                var lastOutputTask = processes[^1]
+                    .StandardOutput.BaseStream.CopyToAsync(
+                        Console.OpenStandardOutput());
+
+                // 6. Wait for all processes and stream operations.
+                var exitTasks = processes
+                    .Select(p => p.WaitForExitAsync());
+
+                await Task.WhenAll(
+                    pipeTasks
+                        .Concat(errorTasks)
+                        .Append(lastOutputTask)
+                        .Concat(exitTasks));
+            }
+            finally
+            {
+                // 7. Clean up even if an operation fails.
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        if (!process.HasExited)
+                            process.Kill(entireProcessTree: true);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // The process may not have started.
+                    }
+                    catch (System.ComponentModel.Win32Exception)
+                    {
+                        // The process may already have exited.
+                    }
+
+                    process.Dispose();
+                }
+            }
+        }
     }
 }

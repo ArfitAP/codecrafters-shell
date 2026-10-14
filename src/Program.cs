@@ -4,7 +4,7 @@ using CodeCrafters.Shell.src.CommandRunners;
 
 class Program
 {
-    static void Main()
+    static async Task Main()
     {
         EnvironmentManager environmentManager = new EnvironmentManager();
 
@@ -21,22 +21,31 @@ class Program
             backgroundCommandRunner.Reap(true);
             string? input = editor.ReadLine("$ ");
 
-            List<string> args = InputParser.ParseInput(input!);
-            string command = args[0];
+            List<List<string>> commandParts = InputParser.ParseInput(input!);
 
-            OutputWriter outputWriter = new OutputWriter(ref args);
+            if(commandParts.Count == 1)
+            { 
+                List<string> args = commandParts[0];
+                string command = args[0];
 
-            if (command == "exit")
-            {
-                break;
-            }
+                OutputWriter outputWriter = new OutputWriter(ref args);
 
-            if(!builtInCommandRunner.TryExecuteBuiltInCommand(command, args, outputWriter))
-            {
-                if(!externalCommandRunner.TryExecuteExternalCommand(command, args, outputWriter))
+                if (command == "exit")
                 {
-                    outputWriter.WriteError($"{command}: command not found");
+                    break;
                 }
+
+                if(!builtInCommandRunner.TryExecuteBuiltInCommand(command, args, outputWriter))
+                {
+                    if(!externalCommandRunner.TryExecuteExternalCommand(command, args, outputWriter))
+                    {
+                        outputWriter.WriteError($"{command}: command not found");
+                    }
+                }
+            }
+            else
+            {
+                await externalCommandRunner.TryExecutePipedCommandAsync(commandParts);
             }
         }
     }
