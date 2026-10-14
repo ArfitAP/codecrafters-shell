@@ -2,7 +2,7 @@
 {
     internal class BuiltInCommandRunner
     {
-        public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete", "jobs"];
+        public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete", "jobs", "history"];
 
         private EnvironmentManager environmentManager;
         private BackgroundCommandRunner backgroundCommandRunner;
