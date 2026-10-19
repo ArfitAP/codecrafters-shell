@@ -37,11 +37,21 @@ namespace CodeCrafters.Shell.src
 
         public void WriteHistoryToFile(string filePath)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return;
+            }
+
             File.WriteAllLines(filePath, history);
         }
 
         public void AppendHistoryToFile(string filePath)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return;
+            }
+
             File.AppendAllLines(filePath, notAppendedHistory);
             notAppendedHistory.Clear();
         }

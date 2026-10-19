@@ -8,6 +8,12 @@ namespace CodeCrafters.Shell.src
 {
     internal class EnvironmentManager
     {
+        private string defaultHistoryFilePath = string.Empty;
+        public EnvironmentManager()
+        {
+            defaultHistoryFilePath = Environment.GetEnvironmentVariable("HISTFILE") ?? string.Empty;
+        }
+
         public string GetCommandPath(string commandName)
         {
             string? path = Environment.GetEnvironmentVariable("PATH");
@@ -57,7 +63,7 @@ namespace CodeCrafters.Shell.src
 
         public string GetDefaultHistoryFilePath()
         {
-            return Environment.GetEnvironmentVariable("HISTFILE") ?? string.Empty;
+            return defaultHistoryFilePath;
         }
     }
 }

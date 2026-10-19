@@ -36,6 +36,7 @@ class Program
 
                 if (command == "exit")
                 {
+                    historyManager.WriteHistoryToFile(environmentManager.GetDefaultHistoryFilePath());
                     break;
                 }
 
