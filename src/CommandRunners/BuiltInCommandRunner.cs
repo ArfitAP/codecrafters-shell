@@ -26,8 +26,16 @@
             }
             if (command == "history")
             {
-                int n = args.Count > 1 ? int.Parse(args[1]) : Int32.MaxValue;
-                historyManager.PrintHistory(n, outputWriter);
+                if (args.Contains("-r"))
+                {
+                    int index = args.IndexOf("-r");
+                    historyManager.ReadHistoryFromFile(args[index + 1]);
+                }
+                else
+                {
+                    int n = args.Count > 1 ? int.Parse(args[1]) : Int32.MaxValue;
+                    historyManager.PrintHistory(n, outputWriter);
+                }
                 return true;
             }
             else if(command == "jobs")

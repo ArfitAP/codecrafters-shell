@@ -18,5 +18,19 @@ namespace CodeCrafters.Shell.src
                 outputWriter.WriteOutput($"    {i + 1}  {history[i]}");
             }
         }
+
+        public void ReadHistoryFromFile(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                return;
+            }
+
+            var lines = File.ReadAllLines(filePath);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if(!string.IsNullOrWhiteSpace(lines[i])) AddToHistory(lines[i]);
+            }
+        }
     }
 }
