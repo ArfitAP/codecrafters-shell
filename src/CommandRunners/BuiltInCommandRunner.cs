@@ -2,7 +2,7 @@
 {
     internal class BuiltInCommandRunner
     {
-        public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete", "jobs", "history"];
+        public static string[] builtInCommands = ["exit", "echo", "type", "pwd", "cd", "complete", "jobs", "history", "declare"];
 
         private EnvironmentManager environmentManager;
         private BackgroundCommandRunner backgroundCommandRunner;
@@ -24,7 +24,11 @@
                 outputWriter.WriteOutput(Directory.GetCurrentDirectory());
                 return true;
             }
-            if (command == "history")
+            else if(command == "declare")
+            {
+
+            }
+            else if (command == "history")
             {
                 if (args.Contains("-r"))
                 {
