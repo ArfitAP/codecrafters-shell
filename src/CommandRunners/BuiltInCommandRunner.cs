@@ -1,4 +1,6 @@
-﻿namespace CodeCrafters.Shell.src.CommandRunners
+﻿using System.Text.RegularExpressions;
+
+namespace CodeCrafters.Shell.src.CommandRunners
 {
     internal class BuiltInCommandRunner
     {
@@ -43,7 +45,16 @@
                 else if (args.Count > 1 && args[1].Contains("="))
                 {
                     var variable = args[1].Split('=');
-                    declaredVariables[variable[0]] = variable[1];
+                    string pattern = @"^[a-zA-Z_][a-zA-Z0-9_]*$";
+
+                    if (Regex.IsMatch(variable[0], pattern))
+                    {
+                        declaredVariables[variable[0]] = variable[1];
+                    }
+                    else
+                    {
+                        outputWriter.WriteError($"declare: `{variable[0]}={variable[1]}': not a valid identifier");
+                    }
                 }
                 return true;
             }
