@@ -54,5 +54,10 @@ namespace CodeCrafters.Shell.src
 
             return matches;
         }
+
+        public string GetDefaultHistoryFilePath()
+        {
+            return Environment.GetEnvironmentVariable("HISTFILE") ?? string.Empty;
+        }
     }
 }

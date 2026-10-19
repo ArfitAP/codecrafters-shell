@@ -16,7 +16,9 @@ class Program
         AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);
 
         LineEditor editor = new LineEditor(autoCompletionManager);
-        
+
+        historyManager.ReadHistoryFromFile(environmentManager.GetDefaultHistoryFilePath());
+
         while (true)    
         {
             backgroundCommandRunner.Reap(true);
