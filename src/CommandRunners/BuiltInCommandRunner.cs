@@ -33,12 +33,17 @@
                     int index = args.IndexOf("-p");
                     if(declaredVariables.ContainsKey(args[index + 1]))
                     {
-                        outputWriter.WriteOutput($"declare {args[index + 1]}={declaredVariables[args[index + 1]]}");
+                        outputWriter.WriteOutput($"declare -- {args[index + 1]}=\"{declaredVariables[args[index + 1]]}\"");
                     }
                     else
                     {
                         outputWriter.WriteError($"declare: {args[index + 1]}: not found");
                     }
+                }
+                else if (args.Count > 1 && args[1].Contains("="))
+                {
+                    var variable = args[1].Split('=');
+                    declaredVariables[variable[0]] = variable[1];
                 }
                 return true;
             }
