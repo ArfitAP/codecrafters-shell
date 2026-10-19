@@ -8,6 +8,7 @@
         private BackgroundCommandRunner backgroundCommandRunner;
         private HistoryManager historyManager;
         private Dictionary<string, string> completionDictionary;
+        private Dictionary<string, string> declaredVariables;
 
         public BuiltInCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, HistoryManager historyManager)
         {
@@ -15,6 +16,7 @@
             this.backgroundCommandRunner = backgroundCommandRunner;
             this.historyManager = historyManager;
             this.completionDictionary = new Dictionary<string, string>();
+            this.declaredVariables = new Dictionary<string, string>();
         }
 
         public bool TryExecuteBuiltInCommand(string command, List<string> args, OutputWriter outputWriter)
@@ -26,7 +28,19 @@
             }
             else if(command == "declare")
             {
-
+                if (args.Contains("-p"))
+                {
+                    int index = args.IndexOf("-p");
+                    if(declaredVariables.ContainsKey(args[index + 1]))
+                    {
+                        outputWriter.WriteOutput($"declare {args[index + 1]}={declaredVariables[args[index + 1]]}");
+                    }
+                    else
+                    {
+                        outputWriter.WriteError($"declare: {args[index + 1]}: not found");
+                    }
+                }
+                return true;
             }
             else if (command == "history")
             {
