@@ -75,10 +75,24 @@ namespace CodeCrafters.Shell.src
                     if (arg.Contains("$"))
                     {
                         int index = arg.IndexOf('$');
-                        string variableName = arg.Substring(index + 1);
-                        string variableValue = variableManager.GetVariable(variableName);
-                        
-                        commandArgs[i][j] = $"{arg[..index]}{variableValue}";
+                        if (arg[index + 1] == '{')
+                        {
+                            int closingBraceIndex = arg.IndexOf('}', index);
+                            if (closingBraceIndex != -1)
+                            {
+                                string variableName = arg.Substring(index + 2, closingBraceIndex - index - 2);
+                                string variableValue = variableManager.GetVariable(variableName);
+
+                                commandArgs[i][j] = $"{arg[..index]}{variableValue}{arg[(closingBraceIndex + 1)..]}";
+                            }
+                        }
+                        else
+                        {
+                            string variableName = arg.Substring(index + 1);
+                            string variableValue = variableManager.GetVariable(variableName);
+
+                            commandArgs[i][j] = $"{arg[..index]}{variableValue}";
+                        }
                     }
                 }
             }
