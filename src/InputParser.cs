@@ -95,6 +95,8 @@ namespace CodeCrafters.Shell.src
                         }
                     }
                 }
+
+                commandArgs[i] = commandArgs[i].Where(arg => !string.IsNullOrWhiteSpace(arg)).ToList();
             }
 
             return commandArgs;
