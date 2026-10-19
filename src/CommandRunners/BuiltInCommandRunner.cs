@@ -36,6 +36,11 @@
                     int index = args.IndexOf("-w");
                     historyManager.WriteHistoryToFile(args[index + 1]);
                 }
+                else if (args.Contains("-a"))
+                {
+                    int index = args.IndexOf("-a");
+                    historyManager.AppendHistoryToFile(args[index + 1]);
+                }
                 else
                 {
                     int n = args.Count > 1 ? int.Parse(args[1]) : Int32.MaxValue;

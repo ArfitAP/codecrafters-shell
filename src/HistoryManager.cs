@@ -4,10 +4,12 @@ namespace CodeCrafters.Shell.src
     internal class HistoryManager
     {
         private List<string> history = new List<string>();
+        private List<string> notAppendedHistory = new List<string>();
 
         public void AddToHistory(string command)
         {
             history.Add(command);
+            notAppendedHistory.Add(command);
         }
 
         public void PrintHistory(int n, OutputWriter outputWriter)
@@ -36,6 +38,12 @@ namespace CodeCrafters.Shell.src
         public void WriteHistoryToFile(string filePath)
         {
             File.WriteAllLines(filePath, history);
+        }
+
+        public void AppendHistoryToFile(string filePath)
+        {
+            File.AppendAllLines(filePath, notAppendedHistory);
+            notAppendedHistory.Clear();
         }
     }
 }
