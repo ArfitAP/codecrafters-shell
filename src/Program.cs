@@ -8,9 +8,10 @@ class Program
     {
         EnvironmentManager environmentManager = new EnvironmentManager();
         HistoryManager historyManager = new HistoryManager();
+        VariableManager variableManager = new VariableManager();
 
         BackgroundCommandRunner backgroundCommandRunner = new BackgroundCommandRunner();
-        BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager, backgroundCommandRunner, historyManager);
+        BuiltInCommandRunner builtInCommandRunner = new BuiltInCommandRunner(environmentManager, backgroundCommandRunner, historyManager, variableManager);
         ExternalCommandRunner externalCommandRunner = new ExternalCommandRunner(environmentManager, backgroundCommandRunner, builtInCommandRunner, historyManager);
 
         AutoCompletionManager autoCompletionManager = new AutoCompletionManager(environmentManager, builtInCommandRunner);
@@ -25,7 +26,7 @@ class Program
             string? input = editor.ReadLine("$ ");
 
             historyManager.AddToHistory(input!);
-            List<List<string>> commandParts = InputParser.ParseInput(input!);
+            List<List<string>> commandParts = InputParser.ParseInput(input!, variableManager);
 
             if(commandParts.Count == 1)
             { 

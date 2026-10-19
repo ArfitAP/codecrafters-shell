@@ -4,7 +4,7 @@ namespace CodeCrafters.Shell.src
 {
     internal static class InputParser
     {
-        public static List<List<string>> ParseInput(string input)
+        public static List<List<string>> ParseInput(string input, VariableManager variableManager)
         {
             List<List<string>> commandArgs = new List<List<string>>();
 
@@ -66,6 +66,23 @@ namespace CodeCrafters.Shell.src
                 }
             }
             commandArgs.Add(currentCommandArgs);
+
+            for (int i = 0; i < commandArgs.Count; i++)
+            {
+                for (int j = 0; j < commandArgs[i].Count; j++)
+                {
+                    string arg = commandArgs[i][j];
+                    if (arg.Contains("$"))
+                    {
+                        int index = arg.IndexOf('$');
+                        string variableName = arg.Substring(index + 1);
+                        string variableValue = variableManager.GetVariable(variableName);
+                        
+                        commandArgs[i][j] = $"{arg[..index]}{variableValue}";
+                    }
+                }
+            }
+
             return commandArgs;
         }
     }

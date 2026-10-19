@@ -9,16 +9,17 @@ namespace CodeCrafters.Shell.src.CommandRunners
         private EnvironmentManager environmentManager;
         private BackgroundCommandRunner backgroundCommandRunner;
         private HistoryManager historyManager;
+        private VariableManager variableManager;
         private Dictionary<string, string> completionDictionary;
-        private Dictionary<string, string> declaredVariables;
+        
 
-        public BuiltInCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, HistoryManager historyManager)
+        public BuiltInCommandRunner(EnvironmentManager environmentManager, BackgroundCommandRunner backgroundCommandRunner, HistoryManager historyManager, VariableManager variableManager)
         {
             this.environmentManager = environmentManager;
             this.backgroundCommandRunner = backgroundCommandRunner;
             this.historyManager = historyManager;
+            this.variableManager = variableManager;
             this.completionDictionary = new Dictionary<string, string>();
-            this.declaredVariables = new Dictionary<string, string>();
         }
 
         public bool TryExecuteBuiltInCommand(string command, List<string> args, OutputWriter outputWriter)
@@ -33,25 +34,13 @@ namespace CodeCrafters.Shell.src.CommandRunners
                 if (args.Contains("-p"))
                 {
                     int index = args.IndexOf("-p");
-                    if(declaredVariables.ContainsKey(args[index + 1]))
-                    {
-                        outputWriter.WriteOutput($"declare -- {args[index + 1]}=\"{declaredVariables[args[index + 1]]}\"");
-                    }
-                    else
-                    {
-                        outputWriter.WriteError($"declare: {args[index + 1]}: not found");
-                    }
+                    outputWriter.WriteOutput(variableManager.PrintVariable(args[index + 1]));
                 }
                 else if (args.Count > 1 && args[1].Contains("="))
                 {
                     var variable = args[1].Split('=');
-                    string pattern = @"^[a-zA-Z_][a-zA-Z0-9_]*$";
 
-                    if (Regex.IsMatch(variable[0], pattern))
-                    {
-                        declaredVariables[variable[0]] = variable[1];
-                    }
-                    else
+                    if (variableManager.SetVariable(variable[0], variable[1]) == false)
                     {
                         outputWriter.WriteError($"declare: `{variable[0]}={variable[1]}': not a valid identifier");
                     }
