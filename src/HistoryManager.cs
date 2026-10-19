@@ -32,5 +32,10 @@ namespace CodeCrafters.Shell.src
                 if(!string.IsNullOrWhiteSpace(lines[i])) AddToHistory(lines[i]);
             }
         }
+
+        public void WriteHistoryToFile(string filePath)
+        {
+            File.WriteAllLines(filePath, history);
+        }
     }
 }
